@@ -14,13 +14,11 @@ import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
-// --- FIX: IMPORT SHARED FIREBASE INSTANCES ---
-import { functions, auth } from "@/lib/firebase"; 
-import { httpsCallable } from 'firebase/functions';
-// --- REMOVED getFunctions, getAuth, getApp imports ---
 
+// --- Configuration ---
+const CLOUD_FUNCTION_URL = "https://generatecoursecontent-nilrqvcmlq-uc.a.run.app"; 
 
-// --- TYPE DEFINITIONS for AI Output (Must match Cloud Function JSON) ---
+// --- Interface for Generated Content ---
 interface CourseOutline {
     module: string;
     lessons: string[];
@@ -30,26 +28,18 @@ interface CourseOutline {
 interface Quiz {
     question: string;
     options: string[];
-    correctIndex: number;
+    correct: number;
     explanation: string;
 }
 
-interface GeneratedCourseData {
+interface GeneratedContent {
     outline: CourseOutline[];
-    fullContent: string;
     quizzes: Quiz[];
-    videoScript: string;
+    script: string;
+    content: string;
 }
 
-interface GenerateCourseResponse {
-    success: boolean;
-    courseData: GeneratedCourseData;
-}
-// ----------------------------------------------------------------------
-
-// Use imported 'functions' instance for callable function setup
-const generateCourseFunction = httpsCallable<z.infer<typeof courseSchema>, GenerateCourseResponse>(functions, 'generateCourse');
-
+// --- Zod Schema and Constants (Unchanged) ---
 const courseSchema = z.object({
     topic: z.string().min(5, "Topic must be at least 5 characters"),
     description: z.string().optional(),
@@ -57,15 +47,14 @@ const courseSchema = z.object({
     language: z.string().min(1, "Please select a language"),
     difficulty: z.string().min(1, "Please select difficulty level"),
 });
+type CourseFormValues = z.infer<typeof courseSchema>; // Define type from schema
 
 const languages = [
     { value: "en", label: "English" },
-    { value: "ta", label: "Tamil" },
-    { value: "ja", label: "Japanese" },
-    { value: "de", label: "German" },
-    { value: "fr", label: "French" },
-    { value: "es", label: "Spanish" },
     { value: "hi", label: "Hindi" },
+    { value: "es", label: "Spanish" },
+    { value: "fr", label: "French" },
+    { value: "de", label: "German" },
     { value: "pt", label: "Portuguese" },
     { value: "ar", label: "Arabic" },
     { value: "zh", label: "Chinese" },
@@ -78,75 +67,134 @@ const formats = [
     { value: "video", label: "Video Script", icon: Video },
 ];
 
+// --- REAL CONTENT GENERATION FUNCTION (Calls Cloud Function) ---
+
+const generateContent = async (values: CourseFormValues): Promise<GeneratedContent> => {
+    console.log("Calling Cloud Function for content generation:", values);
+
+    const response = await fetch(CLOUD_FUNCTION_URL, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+    });
+
+    if (!response.ok) {
+        let errorMessage = `HTTP error! Status: ${response.status}`;
+        try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorData.details || errorMessage;
+        } catch {}
+        throw new Error(`Cloud Function Error: ${errorMessage}`);
+    }
+
+    return response.json() as Promise<GeneratedContent>;
+};
+
+// --- Dashboard Component ---
+
 const Dashboard = () => {
     const navigate = useNavigate();
     const [isGenerating, setIsGenerating] = useState(false);
     const [generationProgress, setGenerationProgress] = useState(0);
-    const [statusMessage, setStatusMessage] = useState("Ready to spark new learning!");
-    
-    // Sample recent courses data (replace with actual data fetching if available)
-    const [recentCourses, setRecentCourses] = useState([
-        { id: 1, topic: "Digital Payments Security", format: "PDF", language: "English", date: "2024-01-15" },
-        { id: 2, topic: "Machine Learning Basics", format: "PPT", language: "Hindi", date: "2024-01-14" },
-        { id: 3, topic: "Cybersecurity Fundamentals", format: "Video Script", language: "English", date: "2024-01-13" },
-    ]);
+    const [progressMessage, setProgressMessage] = useState("Awaiting input..."); 
 
-    const form = useForm<z.infer<typeof courseSchema>>({
+    const LOCAL_STORAGE_KEY = 'aiCourseCreatorData';
+
+    // Load recent courses from local storage or use initial static data
+    const [recentCourses, setRecentCourses] = useState(() => {
+        try {
+            const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+            const initialCourses = storedData ? JSON.parse(storedData).recentCourses || [] : [];
+            return initialCourses.length > 0 ? initialCourses : [
+                { id: 1, topic: "Digital Payments Security", format: "pdf", language: "English", date: "2024-01-15" },
+                { id: 2, topic: "Machine Learning Basics", format: "ppt", language: "Hindi", date: "2024-01-14" },
+                { id: 3, topic: "Cybersecurity Fundamentals", format: "video", language: "English", date: "2024-01-13" },
+            ];
+        } catch (error) {
+            console.error("Error loading recent courses from localStorage:", error);
+            return [
+                { id: 1, topic: "Digital Payments Security", format: "pdf", language: "English", date: "2024-01-15" },
+                { id: 2, topic: "Machine Learning Basics", format: "ppt", language: "Hindi", date: "2024-01-14" },
+                { id: 3, topic: "Cybersecurity Fundamentals", format: "video", language: "English", date: "2024-01-13" },
+            ];
+        }
+    });
+    
+    // Function to save data to localStorage
+    const saveToLocalStorage = (newCourses: any[], content: GeneratedContent) => {
+        const data = { recentCourses: newCourses, currentGeneratedContent: content };
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(data));
+    };
+
+
+    const form = useForm<CourseFormValues>({
         resolver: zodResolver(courseSchema),
         defaultValues: {
             topic: "",
             description: "",
-            format: "",
+            format: "pdf", // Default to PDF
             language: "en",
             difficulty: "intermediate",
         },
     });
 
-    const handleGenerateCourse = async (values: z.infer<typeof courseSchema>) => {
+    const handleGenerateCourse = async (values: CourseFormValues) => {
         setIsGenerating(true);
-        setGenerationProgress(10);
-        setStatusMessage("1. Initializing AI model...");
+        setGenerationProgress(0);
+        setProgressMessage("Starting AI course generation...");
 
         try {
-            // Step 1: Call the Cloud Function to Generate Content. 
-            // The imported 'functions' instance knows about the logged-in user via 'auth'.
-            const response = await generateCourseFunction(values); 
+            // 1. Simulate AI generation progress (client-side)
+            const progressSteps = [
+                { progress: 20, message: "Analyzing topic and creating prompt..." },
+                { progress: 40, message: "Sending request to secure Cloud Function..." },
+            ];
 
-            // Accessing courseData is now type-safe
-            const { courseData } = response.data; 
+            for (const step of progressSteps) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+                setGenerationProgress(step.progress);
+                setProgressMessage(step.message);
+            }
+            
+            // --- Core API Call ---
+            // 2. Call the secure Cloud Function to generate content
+            const generatedContent = await generateContent(values);
 
-            setGenerationProgress(50);
-            setStatusMessage("2. Generating course content and structure...");
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
+            // Update progress for post-API call processing
             setGenerationProgress(80);
-            setStatusMessage("3. Finalizing quizzes and video script...");
+            setProgressMessage("Structuring received AI data...");
             await new Promise(resolve => setTimeout(resolve, 500));
-            
-            setGenerationProgress(100);
-            setStatusMessage("✅ Course generated successfully! Redirecting for review.");
-            
-            // Step 2: Store generated data temporarily
-            localStorage.setItem('generatedCourseData', JSON.stringify(courseData));
-            
-            // Step 3: Add to recent courses and navigate
+
+            // 3. Update recent courses
+            const formatLabel = formats.find(f => f.value === values.format)?.label.replace(' Course', '').replace(' Presentation', '').replace('-lessons', '') || values.format.toUpperCase();
+            const languageLabel = languages.find(l => l.value === values.language)?.label || "English";
+
             const newCourse = {
                 id: Date.now(),
                 topic: values.topic,
-                format: values.format.toUpperCase(),
-                language: languages.find(l => l.value === values.language)?.label || "English",
+                format: values.format, // Save the value for consistent lookup
+                language: languageLabel,
                 date: new Date().toISOString().split('T')[0],
             };
-            setRecentCourses([newCourse, ...recentCourses]);
+            
+            const updatedCourses = [newCourse, ...recentCourses];
+            setRecentCourses(updatedCourses);
+            
+            // 4. Save the generated content and updated courses for the Review page to fetch
+            saveToLocalStorage(updatedCourses, generatedContent);
+            
+            setGenerationProgress(100);
+            setProgressMessage("Course generated successfully! Redirecting...");
+            await new Promise(resolve => setTimeout(resolve, 500));
 
-            navigate(`/review?topic=${encodeURIComponent(values.topic)}&format=${values.format}&language=${values.language}`);
+            // 5. Navigate to review page
+            navigate(`/review?topic=${encodeURIComponent(values.topic)}&format=${values.format}&language=${values.language}&difficulty=${values.difficulty}`);
 
-        } catch (error: any) {
-            console.error("Course Generation Failed:", error);
-            const errorMessage = error.code === 'unauthenticated' 
-                ? "Authentication failed. Please log out and log back in." 
-                : error.details?.message || error.message || "Failed to generate course. Check function logs.";
-            setStatusMessage(`❌ Error: ${errorMessage}`);
+        } catch (error) {
+            console.error("Course generation failed:", error);
+            setProgressMessage(`Generation failed: ${error instanceof Error ? error.message : "Unknown error"}`);
             setGenerationProgress(0);
         } finally {
             setIsGenerating(false);
@@ -154,10 +202,14 @@ const Dashboard = () => {
     };
 
     const handleLogout = () => {
-        auth.signOut() 
-            .then(() => navigate("/"))
-            .catch((error) => console.error("Logout error:", error));
+        navigate("/");
     };
+    
+    // Helper to get Format Label
+    const getFormatLabel = (formatValue: string) => {
+        return formats.find(f => f.value === formatValue)?.label.replace(' Course', '').replace(' Presentation', '').replace('-lessons', '') || formatValue.toUpperCase();
+    }
+
 
     return (
         <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
@@ -176,7 +228,8 @@ const Dashboard = () => {
                     </Button>
                 </div>
             </header>
-
+            
+            {/* --- Dashboard Content --- */}
             <div className="container mx-auto px-4 py-8">
                 <div className="grid lg:grid-cols-3 gap-8">
                     {/* Course Generation Form */}
@@ -194,6 +247,7 @@ const Dashboard = () => {
                             <CardContent>
                                 <Form {...form}>
                                     <form onSubmit={form.handleSubmit(handleGenerateCourse)} className="space-y-6">
+                                        {/* Topic Field */}
                                         <FormField
                                             control={form.control}
                                             name="topic"
@@ -201,18 +255,14 @@ const Dashboard = () => {
                                                 <FormItem>
                                                     <FormLabel>Course Topic</FormLabel>
                                                     <FormControl>
-                                                        <Input
-                                                            placeholder="e.g., Teach Digital Payments Security"
-                                                            {...field}
-                                                            className="text-base"
-                                                            disabled={isGenerating}
-                                                        />
+                                                        <Input placeholder="e.g., Teach Digital Payments Security" {...field} className="text-base" />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
                                             )}
                                         />
 
+                                        {/* Description Field */}
                                         <FormField
                                             control={form.control}
                                             name="description"
@@ -220,12 +270,7 @@ const Dashboard = () => {
                                                 <FormItem>
                                                     <FormLabel>Course Description (Optional)</FormLabel>
                                                     <FormControl>
-                                                        <Textarea
-                                                            placeholder="Provide additional context or specific learning objectives..."
-                                                            {...field}
-                                                            rows={3}
-                                                            disabled={isGenerating}
-                                                        />
+                                                        <Textarea placeholder="Provide additional context or specific learning objectives..." {...field} rows={3} />
                                                     </FormControl>
                                                     <FormMessage />
                                                 </FormItem>
@@ -233,13 +278,14 @@ const Dashboard = () => {
                                         />
 
                                         <div className="grid md:grid-cols-2 gap-4">
+                                            {/* Format Field */}
                                             <FormField
                                                 control={form.control}
                                                 name="format"
                                                 render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel>Output Format</FormLabel>
-                                                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isGenerating}>
+                                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                             <FormControl>
                                                                 <SelectTrigger>
                                                                     <SelectValue placeholder="Select format" />
@@ -261,13 +307,14 @@ const Dashboard = () => {
                                                 )}
                                             />
 
+                                            {/* Language Field */}
                                             <FormField
                                                 control={form.control}
                                                 name="language"
                                                 render={({ field }) => (
                                                     <FormItem>
                                                         <FormLabel>Language</FormLabel>
-                                                        <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isGenerating}>
+                                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                             <FormControl>
                                                                 <SelectTrigger>
                                                                     <SelectValue placeholder="Select language" />
@@ -290,13 +337,14 @@ const Dashboard = () => {
                                             />
                                         </div>
 
+                                        {/* Difficulty Field */}
                                         <FormField
                                             control={form.control}
                                             name="difficulty"
                                             render={({ field }) => (
                                                 <FormItem>
                                                     <FormLabel>Difficulty Level</FormLabel>
-                                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={isGenerating}>
+                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                         <FormControl>
                                                             <SelectTrigger>
                                                                 <SelectValue placeholder="Select difficulty" />
@@ -316,7 +364,7 @@ const Dashboard = () => {
                                         {isGenerating && (
                                             <div className="space-y-3">
                                                 <div className="flex justify-between text-sm">
-                                                    <span>{statusMessage}</span>
+                                                    <span>{progressMessage}</span>
                                                     <span>{generationProgress}%</span>
                                                 </div>
                                                 <Progress value={generationProgress} className="w-full" />
@@ -337,8 +385,8 @@ const Dashboard = () => {
                             </CardContent>
                         </Card>
                     </div>
-
-                    {/* Recent Courses */}
+                    
+                    {/* --- Recent Courses --- */}
                     <div className="space-y-6">
                         <Card className="shadow-lg">
                             <CardHeader>
@@ -353,7 +401,7 @@ const Dashboard = () => {
                                                 <p className="font-medium text-sm leading-tight">{course.topic}</p>
                                                 <div className="flex items-center space-x-2">
                                                     <Badge variant="secondary" className="text-xs">
-                                                        {course.format}
+                                                        {getFormatLabel(course.format)}
                                                     </Badge>
                                                     <Badge variant="outline" className="text-xs">
                                                         {course.language}
@@ -361,8 +409,12 @@ const Dashboard = () => {
                                                 </div>
                                                 <p className="text-xs text-muted-foreground">{course.date}</p>
                                             </div>
-                                            <Button variant="ghost" size="sm">
-                                                <Download className="w-4 h-4" />
+                                            <Button 
+                                                variant="ghost" 
+                                                size="sm"
+                                                onClick={() => navigate(`/review?topic=${encodeURIComponent(course.topic)}&format=${course.format}&language=${course.language}&difficulty=intermediate`)} // Navigate to review
+                                            >
+                                                <FileText className="w-4 h-4" />
                                             </Button>
                                         </div>
                                         {index < recentCourses.length - 1 && <Separator />}
@@ -379,11 +431,11 @@ const Dashboard = () => {
                             <CardContent className="space-y-3 text-sm">
                                 <div className="flex items-start space-x-2">
                                     <div className="w-2 h-2 rounded-full bg-info mt-2 flex-shrink-0" />
-                                    <p>Be specific with your topic for better AI-generated content</p>
+                                    <p>Be **specific** with your topic for better AI-generated content</p>
                                 </div>
                                 <div className="flex items-start space-x-2">
                                     <div className="w-2 h-2 rounded-full bg-success mt-2 flex-shrink-0" />
-                                    <p>Include learning objectives in the description for targeted content</p>
+                                    <p>Include **learning objectives** in the description for targeted content</p>
                                 </div>
                                 <div className="flex items-start space-x-2">
                                     <div className="w-2 h-2 rounded-full bg-warning mt-2 flex-shrink-0" />
@@ -391,10 +443,10 @@ const Dashboard = () => {
                                 </div>
                             </CardContent>
                         </Card>
-                    </div>
-                </div>
-            </div>
-        </div>
+                    </div> 
+                </div> 
+            </div> 
+        </div> 
     );
 };
 
