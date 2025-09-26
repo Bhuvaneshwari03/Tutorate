@@ -99,9 +99,9 @@ const Login = () => {
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-info bg-clip-text text-transparent">
-                        AI Course Creator
+                        Tutorate
                     </h1>
-                    <p className="text-muted-foreground mt-2">Spark the Future of Learning</p>
+                    <p className="text-muted-foreground mt-2">Future of Learning</p>
                 </div>
 
                 <Card className="shadow-lg">
