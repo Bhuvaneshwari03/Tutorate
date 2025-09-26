@@ -9,11 +9,11 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Mail, Lock, User, Briefcase, GraduationCap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "@/lib/firebase"; 
-import { 
-    createUserWithEmailAndPassword, 
-    signInWithEmailAndPassword, 
-    GoogleAuthProvider, 
+import { auth, db } from "../lib/firebase";
+import {
+    createUserWithEmailAndPassword,
+    signInWithEmailAndPassword,
+    GoogleAuthProvider,
     signInWithPopup,
     User as FirebaseUser
 } from "firebase/auth";
@@ -26,12 +26,11 @@ const loginSchema = z.object({
     password: z.string().min(6, "Password must be at least 6 characters"),
 });
 
-// --- CORRECTED SIGNUP SCHEMA ---
 const signupSchema = z.object({
     name: z.string().min(2, "Name must be at least 2 characters"),
     email: z.string().email("Invalid email address"),
     password: z.string().min(6, "Password must be at least 6 characters"),
-    role: z.enum(["trainer", "user"]), // FIX: Removed the invalid { required_error } parameter.
+    role: z.enum(["trainer", "user"]),
 });
 
 const Login = () => {
@@ -48,7 +47,7 @@ const Login = () => {
         resolver: zodResolver(signupSchema),
         defaultValues: { name: "", email: "", password: "", role: undefined },
     });
-    
+
     const handleLoginSuccess = async (user: FirebaseUser) => {
         const userDocRef = doc(db, "users", user.uid);
         const userDoc = await getDoc(userDocRef);
@@ -56,20 +55,20 @@ const Login = () => {
         if (userDoc.exists()) {
             const userData = userDoc.data();
             if (userData.role === 'trainer') {
-                navigate("/dashboard"); // Or a specific /trainer-dashboard
+                navigate("/dashboard");
             } else {
                 navigate("/user-dashboard");
             }
         } else {
             // Default new Google sign-ins to the 'user' role
-            await setDoc(userDocRef, { 
-                uid: user.uid, 
-                email: user.email, 
-                name: user.displayName || 'Google User', 
+            await setDoc(userDocRef, {
+                uid: user.uid,
+                email: user.email,
+                name: user.displayName || 'Google User',
                 role: 'user',
                 createdAt: new Date(),
             });
-            navigate("/dashboard");
+            navigate("/user-dashboard");
         }
     };
 
@@ -79,7 +78,7 @@ const Login = () => {
         try {
             const userCredential = await signInWithEmailAndPassword(auth, values.email, values.password);
             await handleLoginSuccess(userCredential.user);
-        } catch (err: any) { 
+        } catch (err: any) {
             console.error("Login Error:", err);
             setError("Login failed. Please check your credentials.");
         } finally {
@@ -91,7 +90,6 @@ const Login = () => {
         setIsLoading(true);
         setError("");
         try {
-            // First, ensure a role is selected
             if (!values.role) {
                 setError("Please select a role (Trainer or User).");
                 setIsLoading(false);
@@ -100,7 +98,7 @@ const Login = () => {
 
             const userCredential = await createUserWithEmailAndPassword(auth, values.email, values.password);
             const user = userCredential.user;
-            
+
             await setDoc(doc(db, "users", user.uid), {
                 uid: user.uid,
                 name: values.name,
@@ -109,7 +107,7 @@ const Login = () => {
                 createdAt: new Date(),
             });
             await handleLoginSuccess(user);
-        } catch (err: any) { 
+        } catch (err: any) {
             console.error("Signup Error:", err);
             setError("Signup failed. That email may already be in use.");
         } finally {
@@ -123,14 +121,14 @@ const Login = () => {
         try {
             const result = await signInWithPopup(auth, googleProvider);
             await handleLoginSuccess(result.user);
-        } catch (err: any) { 
+        } catch (err: any) {
             console.error("Google Login Error:", err);
             setError("Google sign-in failed. Please try again.");
         } finally {
             setIsLoading(false);
         }
     };
-    
+
     return (
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/20 p-4">
             <div className="w-full max-w-md">
@@ -257,18 +255,18 @@ const Login = () => {
                                                     <FormLabel>I am a...</FormLabel>
                                                     <FormControl>
                                                         <div className="grid grid-cols-2 gap-4">
-                                                            <div 
+                                                            <div
                                                                 onClick={() => field.onChange("trainer")}
                                                                 className={`cursor-pointer p-4 border rounded-lg flex flex-col items-center justify-center transition-all ${field.value === 'trainer' ? 'border-primary bg-primary/10' : ''}`}
                                                             >
-                                                                <Briefcase className="h-6 w-6 mb-2"/>
+                                                                <Briefcase className="h-6 w-6 mb-2" />
                                                                 <span className="font-medium">Trainer</span>
                                                             </div>
-                                                             <div 
+                                                            <div
                                                                 onClick={() => field.onChange("user")}
                                                                 className={`cursor-pointer p-4 border rounded-lg flex flex-col items-center justify-center transition-all ${field.value === 'user' ? 'border-primary bg-primary/10' : ''}`}
                                                             >
-                                                                <GraduationCap className="h-6 w-6 mb-2"/>
+                                                                <GraduationCap className="h-6 w-6 mb-2" />
                                                                 <span className="font-medium">Learner</span>
                                                             </div>
                                                         </div>
@@ -283,7 +281,7 @@ const Login = () => {
                                     </form>
                                 </Form>
                             </TabsContent>
-                            
+
                             <div className="relative">
                                 <div className="absolute inset-0 flex items-center">
                                     <span className="w-full border-t" />
@@ -311,3 +309,4 @@ const Login = () => {
 };
 
 export default Login;
+
