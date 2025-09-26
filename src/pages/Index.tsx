@@ -21,7 +21,8 @@ import { useNavigate } from "react-router-dom";
 
 // --- Corrected & New Imports ---
 import CardNav from "../components/CardNav";
-import DotGrid from '../components/dot-grid';
+import DotGrid from "../components/dot-grid";
+import Shuffle from '../components/Shuffle';
 
 const Index = () => {
   const navigate = useNavigate();
@@ -143,7 +144,13 @@ const Index = () => {
           shockStrength={5}
           resistance={750}
           returnDuration={1.5}
-          style={{ width: "100%", height: "100%", position: "absolute", top: 0, left: 0 }}
+          style={{
+            width: "100%",
+            height: "100%",
+            position: "absolute",
+            top: 0,
+            left: 0,
+          }}
         />
       </div>
       {/* Glassmorphism nav */}
@@ -163,12 +170,19 @@ const Index = () => {
       <section className="relative flex items-center justify-center min-h-screen w-full text-center">
         {/* Hero Content (no card background) */}
         <div className="relative z-10 mx-auto max-w-3xl w-full px-6 py-14">
-          <h1 className="mb-6 text-6xl font-extrabold leading-tight tracking-tight">
-            The Future of{" "}
-            <span className="bg-gradient-to-r from-indigo-500 to-blue-400 bg-clip-text text-transparent animate-gradient-x">
-              Learning
-            </span>
-          </h1>
+          <Shuffle
+            text="The Future Of Learning"
+            shuffleDirection="right"
+            duration={0.35}
+            animationMode="evenodd"
+            shuffleTimes={1}
+            ease="power3.out"
+            stagger={0.03}
+            threshold={0.1}
+            triggerOnce={true}
+            triggerOnHover={true}
+            respectReducedMotion={true}
+          />
           <p className="mb-8 text-xl text-black-600 max-w-2xl mx-auto">
             One line in, a full course out.
           </p>
@@ -358,7 +372,7 @@ const Index = () => {
               <Sparkles className="w-5 h-5 text-white" />
             </div>
             <span className="font-semibold text-indigo-700 text-lg">
-              AI Course Creator
+              Tutorate
             </span>
           </div>
           <p className="text-gray-500 text-sm">
