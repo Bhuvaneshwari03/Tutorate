@@ -286,10 +286,7 @@ const Dashboard = () => {
             <header className="border-b bg-card/50 backdrop-blur-sm sticky top-0 z-10">
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                     <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-gradient-to-r from-primary to-info rounded-lg flex items-center justify-center">
-                            <Sparkles className="w-5 h-5 text-primary-foreground" />
-                        </div>
-                        <h1 className="text-xl font-bold">AI Course Creator</h1>
+                        <h1 className="text-xl font-bold">Tutorate</h1>
                     </div>
                     <Button variant="outline" onClick={handleLogout}>
                         <LogOut className="w-4 h-4 mr-2" />
@@ -305,7 +302,6 @@ const Dashboard = () => {
                         <Card className="shadow-lg">
                             <CardHeader>
                                 <CardTitle className="flex items-center space-x-2">
-                                    <Sparkles className="w-5 h-5 text-info" />
                                     <span>Generate New Course</span>
                                 </CardTitle>
                                 <CardDescription>

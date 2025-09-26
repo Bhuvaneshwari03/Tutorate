@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { auth } from "@/lib/firebase";
+import { auth, db,functions} from "../lib/firebase";
 import { LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 

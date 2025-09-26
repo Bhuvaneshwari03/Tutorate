@@ -9,7 +9,7 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Mail, Lock, User, Briefcase, GraduationCap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { auth, db } from "../lib/firebase";
+import { auth, db,functions} from "../lib/firebase";
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
@@ -134,9 +134,9 @@ const Login = () => {
             <div className="w-full max-w-md">
                 <div className="text-center mb-8">
                     <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-info bg-clip-text text-transparent">
-                        AI Course Creator
+                        Tutorate
                     </h1>
-                    <p className="text-muted-foreground mt-2">Spark the Future of Learning</p>
+                    <p className="text-muted-foreground mt-2">Future of Learning</p>
                 </div>
 
                 <Card className="shadow-lg">
