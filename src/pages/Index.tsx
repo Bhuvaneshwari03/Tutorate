@@ -1,21 +1,47 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Sparkles, 
-  BookOpen, 
-  Globe, 
-  FileText, 
-  Presentation, 
-  Video, 
-  Zap,
-  CheckCircle,
-  ArrowRight
-} from "lucide-react";
+import { Sparkles, BookOpen, Globe, FileText, Presentation, Video, Zap, CheckCircle, ArrowRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+
+// --- New Imports ---
+import CardNav from "@/components/CardNav"; // Import the navigation component
+import myLogo from "/logo.svg"; // Make sure you have a logo.svg in your /public folder
 
 const Index = () => {
   const navigate = useNavigate();
+
+  // --- Data for CardNav ---
+  const navItems = [
+    {
+      label: "Features",
+      bgColor: "#f0f4ff", // Light blue
+      textColor: "#335d9d",
+      links: [
+        { label: "AI Generation", href: "#features", ariaLabel: "View AI Generation Features" },
+        { label: "Multi-Language", href: "#features", ariaLabel: "View Multi-Language Features" },
+        { label: "Export Formats", href: "#formats", ariaLabel: "View Export Formats" },
+      ],
+    },
+    {
+      label: "How It Works",
+      bgColor: "#f0fff4", // Light green
+      textColor: "#339d5d",
+      links: [
+        { label: "Simple Steps", href: "#how-it-works", ariaLabel: "See How It Works" },
+        { label: "Watch Demo", href: "#", ariaLabel: "Watch a Demo Video" },
+      ],
+    },
+    {
+      label: "Get Started",
+      bgColor: "#fff4f0", // Light orange
+      textColor: "#9d5d33",
+      links: [
+        { label: "Sign Up Free", href: "/login", ariaLabel: "Sign Up for Free" },
+        { label: "View Pricing", href: "#", ariaLabel: "View Pricing Plans" },
+      ],
+    },
+  ];
 
   const features = [
     {
@@ -49,8 +75,21 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
+      
+      {/* --- Add CardNav component here --- */}
+      <CardNav 
+        logo={myLogo}
+        logoAlt="AI Course Creator Logo"
+        items={navItems}
+        baseColor="#ffffff"
+        menuColor="#111827"
+        buttonBgColor="#f0f0f0"
+        buttonTextColor="#111827"
+      />
+      
       {/* Hero Section */}
-      <section className="relative overflow-hidden">
+      {/* pt-24 adds padding to the top to prevent content from being hidden behind the nav */}
+      <section className="relative overflow-hidden pt-24">
         <div className="container mx-auto px-4 py-20 text-center">
           <div className="mx-auto max-w-4xl">
             <Badge className="mb-6 bg-gradient-to-r from-primary to-info text-primary-foreground">
@@ -85,7 +124,7 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-card/30">
+      <section id="features" className="py-20 bg-card/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Powerful Features</h2>
@@ -112,7 +151,7 @@ const Index = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-20">
+      <section id="how-it-works" className="py-20">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">How It Works</h2>
@@ -135,7 +174,7 @@ const Index = () => {
       </section>
 
       {/* Export Formats */}
-      <section className="py-20 bg-card/30">
+      <section id="formats" className="py-20 bg-card/30">
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-3xl font-bold mb-4">Export in Your Preferred Format</h2>
