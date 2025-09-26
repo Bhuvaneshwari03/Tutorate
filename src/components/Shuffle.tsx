@@ -176,7 +176,7 @@ const Shuffle = ({
         wrappersRef.current.forEach(w => {
           const strip = w.firstElementChild;
           if (!strip) return;
-          const kids = Array.from(strip.children);
+          const kids = Array.from(strip.children) as HTMLElement[];
           for (let i = 1; i < kids.length - 1; i++) {
             kids[i].textContent = scrambleCharset.charAt(Math.floor(Math.random() * scrambleCharset.length));
           }

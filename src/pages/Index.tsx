@@ -73,8 +73,7 @@ const Index = () => {
           label: "Sign Up Free",
           href: "/login",
           ariaLabel: "Sign Up for Free",
-        },
-        { label: "View Pricing", href: "#", ariaLabel: "View Pricing Plans" },
+        },    
       ],
     },
   ];
@@ -181,8 +180,7 @@ const Index = () => {
             threshold={0.1}
             triggerOnce={true}
             triggerOnHover={true}
-            respectReducedMotion={true}
-          />
+            respectReducedMotion={true} onShuffleComplete={undefined} colorFrom={undefined} colorTo={undefined}          />
           <p className="mb-8 text-xl text-black-600 max-w-2xl mx-auto">
             One line in, a full course out.
           </p>
@@ -194,14 +192,6 @@ const Index = () => {
             >
               Get Started Free
               <ArrowRight className="w-5 h-5 ml-2" />
-            </Button>
-            <Button
-              variant="outline"
-              size="lg"
-              className="px-8 py-3 text-lg font-semibold rounded-xl border-indigo-200"
-            >
-              <Video className="w-5 h-5 mr-2 text-indigo-400" />
-              Watch Demo
             </Button>
           </div>
         </div>
@@ -357,7 +347,6 @@ const Index = () => {
                 className="bg-gradient-to-r from-indigo-500 to-blue-400 hover:opacity-90 text-white shadow-lg px-8 py-3 text-lg font-semibold rounded-xl"
               >
                 Create Your First Course
-                <Sparkles className="w-5 h-5 ml-2" />
               </Button>
             </CardContent>
           </Card>
@@ -368,9 +357,6 @@ const Index = () => {
       <footer className="border-t bg-white/80 backdrop-blur-lg py-8">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center space-x-2 mb-4">
-            <div className="w-8 h-8 bg-gradient-to-r from-indigo-500 to-blue-400 rounded-full flex items-center justify-center">
-              <Sparkles className="w-5 h-5 text-white" />
-            </div>
             <span className="font-semibold text-indigo-700 text-lg">
               Tutorate
             </span>
