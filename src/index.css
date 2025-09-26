@@ -8,60 +8,45 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 240 10% 3.9%;
-    --foreground: 0 0% 98%;
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
 
-    --card: 240 10% 3.9%;
-    --card-foreground: 0 0% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 240 5.9% 10%;
-    --popover-foreground: 0 0% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 263 70% 50%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
 
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 45%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: 222.2 47.4% 11.2%;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
+    --destructive-foreground: 210 40% 98%;
 
-    --border: 240 5.9% 10%;
-    --input: 240 5.9% 10%;
-    --ring: 263 70% 50%;
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
 
-    /* Creative Course Generator Colors */
-    --electric-purple: 270 91% 65%;
-    --electric-blue: 217 91% 60%;
-    --cyber-pink: 322 84% 60%;
-    --neon-green: 142 84% 55%;
-    --solar-orange: 31 100% 65%;
-    --cosmic-violet: 258 84% 70%;
-    
-    --success: 142 84% 55%;
-    --success-foreground: 0 0% 98%;
-    --warning: 31 100% 65%;
-    --warning-foreground: 0 0% 98%;
-    --info: 217 91% 60%;
-    --info-foreground: 0 0% 98%;
+    /* Course Generator Colors */
+    --success: 142.1 76.2% 36.3%;
+    --success-foreground: 355.7 100% 97.3%;
+    --warning: 32.2 94.6% 43.7%;
+    --warning-foreground: 355.7 100% 97.3%;
+    --info: 221.2 83.2% 53.3%;
+    --info-foreground: 210 40% 98%;
 
-    /* Stunning Gradients */
-    --gradient-cosmic: linear-gradient(135deg, hsl(270 91% 65%) 0%, hsl(258 84% 70%) 50%, hsl(217 91% 60%) 100%);
-    --gradient-fire: linear-gradient(135deg, hsl(322 84% 60%) 0%, hsl(31 100% 65%) 100%);
-    --gradient-ocean: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(199 89% 48%) 100%);
-    --gradient-forest: linear-gradient(135deg, hsl(142 84% 55%) 0%, hsl(120 60% 50%) 100%);
-    --gradient-neural: linear-gradient(45deg, hsl(270 91% 65%) 0%, hsl(322 84% 60%) 25%, hsl(217 91% 60%) 50%, hsl(142 84% 55%) 75%, hsl(31 100% 65%) 100%);
-    
-    /* Glowing Effects */
-    --glow-purple: 0 0 20px hsl(270 91% 65% / 0.5);
-    --glow-blue: 0 0 20px hsl(217 91% 60% / 0.5);
-    --glow-pink: 0 0 20px hsl(322 84% 60% / 0.5);
+    /* Gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(221.2 83.2% 53.3%) 100%);
+    --gradient-secondary: linear-gradient(135deg, hsl(var(--secondary)) 0%, hsl(var(--accent)) 100%);
 
     --radius: 0.5rem;
 
@@ -137,39 +122,5 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
-  }
-
-  .gradient-cosmic {
-    background: var(--gradient-cosmic);
-    background-size: 400% 400%;
-  }
-  
-  .gradient-fire {
-    background: var(--gradient-fire);
-    background-size: 400% 400%;
-  }
-  
-  .gradient-neural {
-    background: var(--gradient-neural);
-    background-size: 600% 600%;
-  }
-  
-  .text-gradient-cosmic {
-    background: var(--gradient-cosmic);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-  }
-  
-  .glow-purple {
-    box-shadow: var(--glow-purple);
-  }
-  
-  .glow-blue {
-    box-shadow: var(--glow-blue);
-  }
-  
-  .glow-pink {
-    box-shadow: var(--glow-pink);
   }
 }

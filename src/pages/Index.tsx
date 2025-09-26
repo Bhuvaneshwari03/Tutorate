@@ -48,49 +48,36 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="absolute inset-0 gradient-neural animate-gradient opacity-20"></div>
-      <div className="absolute inset-0 bg-gradient-to-br from-electric-purple/10 via-transparent to-cyber-pink/10"></div>
-      
-      {/* Floating Particles */}
-      <div className="absolute top-20 left-10 w-2 h-2 bg-electric-purple rounded-full animate-float opacity-60"></div>
-      <div className="absolute top-40 right-20 w-3 h-3 bg-cyber-pink rounded-full animate-float opacity-40" style={{animationDelay: '2s'}}></div>
-      <div className="absolute bottom-20 left-1/4 w-1.5 h-1.5 bg-neon-green rounded-full animate-float opacity-70" style={{animationDelay: '4s'}}></div>
-      
+    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
       {/* Hero Section */}
-      <section className="relative">
-        <div className="container mx-auto px-4 py-20 text-center relative z-10">
-          <div className="mx-auto max-w-5xl">
-            <Badge className="mb-8 gradient-cosmic text-white animate-glow border-0 px-6 py-2 text-lg font-semibold">
-              ✨ AI Course Creator - Neural Edition
+      <section className="relative overflow-hidden">
+        <div className="container mx-auto px-4 py-20 text-center">
+          <div className="mx-auto max-w-4xl">
+            <Badge className="mb-6 bg-gradient-to-r from-primary to-info text-primary-foreground">
+              ✨ AI Course Creator - Beta
             </Badge>
-            <h1 className="mb-8 text-7xl font-bold leading-tight">
+            <h1 className="mb-6 text-5xl font-bold leading-tight">
               Spark the Future of{" "}
-              <span className="text-gradient-cosmic animate-gradient">
+              <span className="bg-gradient-to-r from-primary to-info bg-clip-text text-transparent">
                 Learning
               </span>
             </h1>
-            <p className="mb-10 text-2xl text-muted-foreground max-w-3xl mx-auto leading-relaxed">
-              Transform any topic into a complete educational experience with AI that thinks beyond boundaries.
-              Generate course outlines, lesson content, quizzes, and video scripts in <span className="text-electric-purple font-semibold">seconds</span>.
+            <p className="mb-8 text-xl text-muted-foreground max-w-2xl mx-auto">
+              Transform any topic into a complete educational experience. 
+              Generate course outlines, lesson content, quizzes, and video scripts instantly.
             </p>
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button 
                 size="lg" 
                 onClick={() => navigate("/login")}
-                className="gradient-cosmic hover:scale-105 transition-all duration-300 text-white text-lg px-8 py-4 glow-purple animate-glow"
+                className="bg-gradient-to-r from-primary to-info hover:opacity-90 text-primary-foreground"
               >
-                Launch AI Creator
-                <ArrowRight className="w-5 h-5 ml-2" />
+                Get Started Free
+                <ArrowRight className="w-4 h-4 ml-2" />
               </Button>
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="border-electric-blue text-electric-blue hover:bg-electric-blue/10 hover:scale-105 transition-all duration-300 text-lg px-8 py-4"
-              >
-                <Video className="w-5 h-5 mr-2" />
-                Watch Neural Demo
+              <Button variant="outline" size="lg">
+                <Video className="w-4 h-4 mr-2" />
+                Watch Demo
               </Button>
             </div>
           </div>
@@ -98,25 +85,25 @@ const Index = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 relative">
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl font-bold mb-6 text-gradient-cosmic">Neural Features</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Advanced AI capabilities that redefine educational content creation
+      <section className="py-20 bg-card/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4">Powerful Features</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Everything you need to create professional educational content
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((feature, index) => (
-              <Card key={index} className="text-center bg-card/50 backdrop-blur-sm border-electric-purple/20 hover:border-electric-purple/50 transition-all duration-500 hover:scale-105 hover:glow-purple group">
-                <CardHeader className="pb-4">
-                  <div className="mx-auto w-16 h-16 gradient-cosmic rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300 animate-float" style={{animationDelay: `${index * 0.5}s`}}>
-                    <feature.icon className="w-8 h-8 text-white" />
+              <Card key={index} className="text-center shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader>
+                  <div className="mx-auto w-12 h-12 bg-gradient-to-r from-primary to-info rounded-lg flex items-center justify-center mb-4">
+                    <feature.icon className="w-6 h-6 text-primary-foreground" />
                   </div>
-                  <CardTitle className="text-xl text-foreground group-hover:text-electric-purple transition-colors">{feature.title}</CardTitle>
+                  <CardTitle className="text-lg">{feature.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">{feature.description}</p>
+                  <p className="text-muted-foreground text-sm">{feature.description}</p>
                 </CardContent>
               </Card>
             ))}
@@ -125,23 +112,22 @@ const Index = () => {
       </section>
 
       {/* How It Works */}
-      <section className="py-24 relative">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyber-pink/5 to-electric-blue/5"></div>
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl font-bold mb-6">Neural Process</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Four quantum steps to revolutionize your course creation
+      <section className="py-20">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4">How It Works</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Four simple steps to create your complete course
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-10">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
             {steps.map((step, index) => (
-              <div key={index} className="text-center group">
-                <div className="mx-auto w-20 h-20 gradient-fire rounded-full flex items-center justify-center text-white font-bold text-2xl mb-6 group-hover:scale-110 transition-all duration-300 glow-pink animate-glow" style={{animationDelay: `${index * 0.3}s`}}>
+              <div key={index} className="text-center">
+                <div className="mx-auto w-16 h-16 bg-gradient-to-r from-primary to-info rounded-full flex items-center justify-center text-primary-foreground font-bold text-lg mb-4">
                   {step.step}
                 </div>
-                <h3 className="text-2xl font-semibold mb-4 group-hover:text-electric-purple transition-colors">{step.title}</h3>
-                <p className="text-muted-foreground text-lg leading-relaxed">{step.description}</p>
+                <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
+                <p className="text-muted-foreground text-sm">{step.description}</p>
               </div>
             ))}
           </div>
@@ -149,30 +135,28 @@ const Index = () => {
       </section>
 
       {/* Export Formats */}
-      <section className="py-24 relative">
-        <div className="container mx-auto px-4 relative z-10">
-          <div className="text-center mb-20">
-            <h2 className="text-5xl font-bold mb-6 text-gradient-cosmic">Quantum Export Formats</h2>
-            <p className="text-xl text-muted-foreground max-w-3xl mx-auto">
-              Choose your reality - export in formats that transcend traditional boundaries
+      <section className="py-20 bg-card/30">
+        <div className="container mx-auto px-4">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold mb-4">Export in Your Preferred Format</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Choose the format that works best for your teaching style
             </p>
           </div>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
-              { icon: FileText, name: "Neural PDF", desc: "Quantum-enhanced course documentation", color: "electric-purple" },
-              { icon: Presentation, name: "Cosmic PowerPoint", desc: "Dimension-shifting presentation slides", color: "cyber-pink" },
-              { icon: BookOpen, name: "Micro-Reality", desc: "Bite-sized learning fragments", color: "neon-green" },
-              { icon: Video, name: "Neural Script", desc: "AI-optimized narration sequences", color: "solar-orange" }
+              { icon: FileText, name: "PDF Course", desc: "Complete course documentation" },
+              { icon: Presentation, name: "PowerPoint", desc: "Ready-to-present slides" },
+              { icon: BookOpen, name: "Micro-lessons", desc: "Bite-sized learning modules" },
+              { icon: Video, name: "Video Script", desc: "Narration and slide cues" }
             ].map((format, index) => (
-              <Card key={index} className="text-center bg-card/30 backdrop-blur-sm border-transparent hover:border-electric-purple/50 transition-all duration-500 hover:scale-105 group">
-                <CardHeader className="pb-4">
-                  <div className={`w-16 h-16 mx-auto mb-6 rounded-2xl flex items-center justify-center text-${format.color} bg-${format.color}/10 group-hover:bg-${format.color}/20 transition-all duration-300 group-hover:scale-110`}>
-                    <format.icon className="w-8 h-8" />
-                  </div>
-                  <CardTitle className="text-xl group-hover:text-electric-purple transition-colors">{format.name}</CardTitle>
+              <Card key={index} className="text-center shadow-lg hover:shadow-xl transition-shadow">
+                <CardHeader>
+                  <format.icon className="w-12 h-12 mx-auto mb-4 text-primary" />
+                  <CardTitle className="text-lg">{format.name}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">{format.desc}</p>
+                  <p className="text-muted-foreground text-sm">{format.desc}</p>
                 </CardContent>
               </Card>
             ))}
@@ -181,38 +165,37 @@ const Index = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 relative">
-        <div className="absolute inset-0 gradient-neural animate-gradient opacity-10"></div>
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <Card className="max-w-4xl mx-auto bg-card/20 backdrop-blur-xl border-electric-purple/30 hover:border-electric-purple/60 transition-all duration-500 glow-purple">
-            <CardHeader className="pb-8">
-              <CardTitle className="text-4xl mb-4 text-gradient-cosmic">Ready to Transcend Reality?</CardTitle>
-              <CardDescription className="text-2xl text-muted-foreground">
-                Join the neural revolution - thousands of educators are already creating in the quantum realm
+      <section className="py-20">
+        <div className="container mx-auto px-4 text-center">
+          <Card className="max-w-2xl mx-auto shadow-2xl bg-gradient-to-r from-primary/5 to-info/5 border-primary/20">
+            <CardHeader>
+              <CardTitle className="text-2xl">Ready to Transform Your Teaching?</CardTitle>
+              <CardDescription className="text-lg">
+                Join thousands of educators creating amazing courses with AI
               </CardDescription>
             </CardHeader>
-            <CardContent className="space-y-8">
-              <div className="flex justify-center items-center space-x-8 text-lg text-muted-foreground">
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-6 h-6 text-neon-green" />
-                  <span>Quantum Access</span>
+            <CardContent className="space-y-6">
+              <div className="flex justify-center items-center space-x-6 text-sm text-muted-foreground">
+                <div className="flex items-center">
+                  <CheckCircle className="w-4 h-4 mr-1 text-success" />
+                  Free to start
                 </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-6 h-6 text-electric-blue" />
-                  <span>No Neural Limits</span>
+                <div className="flex items-center">
+                  <CheckCircle className="w-4 h-4 mr-1 text-success" />
+                  No credit card required
                 </div>
-                <div className="flex items-center space-x-2">
-                  <CheckCircle className="w-6 h-6 text-cyber-pink" />
-                  <span>Instant Reality</span>
+                <div className="flex items-center">
+                  <CheckCircle className="w-4 h-4 mr-1 text-success" />
+                  Instant setup
                 </div>
               </div>
               <Button 
                 size="lg" 
                 onClick={() => navigate("/login")}
-                className="gradient-cosmic hover:scale-110 transition-all duration-300 text-white text-xl px-12 py-6 glow-purple animate-glow"
+                className="bg-gradient-to-r from-primary to-info hover:opacity-90 text-primary-foreground"
               >
-                Enter the Neural Dimension
-                <Sparkles className="w-6 h-6 ml-3" />
+                Create Your First Course
+                <Sparkles className="w-4 h-4 ml-2" />
               </Button>
             </CardContent>
           </Card>
@@ -220,16 +203,16 @@ const Index = () => {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-electric-purple/20 bg-card/10 backdrop-blur-sm py-12 relative">
-        <div className="container mx-auto px-4 text-center relative z-10">
-          <div className="flex items-center justify-center space-x-3 mb-6">
-            <div className="w-10 h-10 gradient-cosmic rounded-xl flex items-center justify-center animate-glow">
-              <Sparkles className="w-6 h-6 text-white" />
+      <footer className="border-t bg-card/50 py-8">
+        <div className="container mx-auto px-4 text-center">
+          <div className="flex items-center justify-center space-x-2 mb-4">
+            <div className="w-6 h-6 bg-gradient-to-r from-primary to-info rounded flex items-center justify-center">
+              <Sparkles className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="font-bold text-2xl text-gradient-cosmic">Neural Course Creator</span>
+            <span className="font-semibold">AI Course Creator</span>
           </div>
-          <p className="text-muted-foreground text-lg">
-            Empowering educators to transcend traditional boundaries with quantum AI technology
+          <p className="text-muted-foreground text-sm">
+            Empowering educators with AI-powered course creation tools
           </p>
         </div>
       </footer>
