@@ -1,13 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
-// ADDED: Missing imports for Select/Label components
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"; 
-import { Label } from "@/components/ui/label"; 
 import { 
   FileText, 
   Presentation, 
@@ -16,6 +13,7 @@ import {
   Download, 
   Edit, 
   Check, 
+  X, 
   RotateCcw,
   ArrowLeft,
   Globe,
@@ -23,70 +21,40 @@ import {
   Users
 } from "lucide-react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
-import { getFunctions, httpsCallable } from 'firebase/functions';
-import { getApp } from "firebase/app";
+import { useToast } from "@/hooks/use-toast"; // Assuming this is your custom hook for toasts
 
-// --- TYPE DEFINITIONS for AI Output ---
-interface CourseOutline {
-    module: string;
-    lessons: string[];
-    duration: string;
+interface Lesson {
+  module: string;
+  lessons: string[];
+  duration: string;
 }
 
 interface Quiz {
-    question: string;
-    options: string[];
-    correctIndex: number; // Corrected property name
-    explanation: string;
+  question: string;
+  options: string[];
+  correct: number;
+  explanation: string;
 }
 
-interface GeneratedCourseData {
-    outline: CourseOutline[];
-    fullContent: string;
-    quizzes: Quiz[];
-    videoScript: string;
+interface GeneratedContent {
+  outline: Lesson[];
+  quizzes: Quiz[];
+  script: string;
+  content: string; // Used for generic Lesson Content
 }
-
-interface LessonContent {
-    fullContent: string;
-    videoScript: string;
-}
-
-// NEW TYPE: Expected structure from the translation function response
-interface TranslationResponse {
-    success: boolean;
-    translatedContent: string; // The translated JSON string from the Cloud Function
-}
-// ------------------------------------
-
-const app = getApp();
-const functions = getFunctions(app);
-// Typed callable function: fixes Property 'translatedContent' does not exist on type 'unknown'
-const translateCourseContent = httpsCallable<{content: string, targetLanguage: string}, TranslationResponse>(functions, 'translateCourseContent');
-
-const languages = [
-  { value: "en", label: "English" },
-  { value: "ta", label: "Tamil" },
-  { value: "ja", label: "Japanese" },
-  { value: "de", label: "German" },
-  { value: "fr", label: "French" },
-  { value: "es", label: "Spanish" },
-  { value: "hi", label: "Hindi" },
-];
 
 const formatLabels = {
-    pdf: "PDF Course",
-    ppt: "PowerPoint Presentation", 
-    micro: "Micro-lessons",
-    video: "Video Script"
+  pdf: "PDF Course",
+  ppt: "PowerPoint Presentation", 
+  micro: "Micro-lessons",
+  video: "Video Script"
 };
 
 const formatIcons = {
-    pdf: FileText,
-    ppt: Presentation,
-    micro: BookOpen,
-    video: Video
+  pdf: FileText,
+  ppt: Presentation,
+  micro: BookOpen,
+  video: Video
 };
 
 const Review = () => {
@@ -94,108 +62,71 @@ const Review = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   
+  // Get query parameters
   const topic = searchParams.get("topic") || "Sample Course";
   const format = searchParams.get("format") || "pdf";
-  const initialLanguageCode = searchParams.get("language") || "en";
-
-  const [courseData, setCourseData] = useState<GeneratedCourseData | null>(null);
-  const [currentLanguageCode, setCurrentLanguageCode] = useState(initialLanguageCode);
-  const [translatedContent, setTranslatedContent] = useState<LessonContent>({ fullContent: "", videoScript: "" });
-  const [editingSection, setEditingSection] = useState<string | null>(null);
-  const [isExporting, setIsExporting] = useState(false);
-  const [isTranslating, setIsTranslating] = useState(false);
-  const [contentError, setContentError] = useState("");
+  const language = searchParams.get("language") || "en";
+  const difficulty = searchParams.get("difficulty") || "intermediate";
   
-  const currentLanguageName = languages.find(l => l.value === currentLanguageCode)?.label || "English";
   const FormatIcon = formatIcons[format as keyof typeof formatIcons] || FileText;
 
-  // --- CONTENT LOADING ---
+  // Initial state will be empty or use a default to ensure types are correct
+  const [courseOutline, setCourseOutline] = useState<Lesson[]>([]);
+  const [quizzes, setQuizzes] = useState<Quiz[]>([]);
+  const [videoScript, setVideoScript] = useState<string>("");
+  const [lessonContent, setLessonContent] = useState<string>("");
+
+  const [editingSection, setEditingSection] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const languageLabel = (lang: string) => {
+    switch(lang) {
+      case "en": return "English";
+      case "hi": return "Hindi";
+      case "es": return "Spanish";
+      case "fr": return "French";
+      case "de": return "German";
+      case "pt": return "Portuguese";
+      case "ar": return "Arabic";
+      case "zh": return "Chinese";
+      default: return lang.toUpperCase();
+    }
+  }
+
+  // Effect to load generated content on component mount
   useEffect(() => {
-    const dataString = localStorage.getItem('generatedCourseData');
-    if (dataString) {
+    const LOCAL_STORAGE_KEY = 'aiCourseCreatorData';
+    const loadContent = () => {
       try {
-        const data: GeneratedCourseData = JSON.parse(dataString);
-        setCourseData(data);
-        // Set English content as initial display content
-        setTranslatedContent({ fullContent: data.fullContent, videoScript: data.videoScript });
-        localStorage.removeItem('generatedCourseData'); // Clean up temporary storage
-      } catch (e) {
-        setContentError("Error loading course data from storage. Please regenerate.");
-        setCourseData(null);
+        const storedData = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (storedData) {
+          const parsedData = JSON.parse(storedData);
+          const content: GeneratedContent = parsedData.currentGeneratedContent;
+          
+          if (content) {
+            setCourseOutline(content.outline);
+            setQuizzes(content.quizzes);
+            setVideoScript(content.script);
+            setLessonContent(content.content);
+          } else {
+             // Handle case where content is not in localStorage (e.g., direct navigation)
+             // You might want to navigate back or display an error
+             toast({ title: "Error", description: "No generated content found.", variant: "destructive" });
+          }
+        }
+      } catch (error) {
+        console.error("Error loading content from localStorage:", error);
+        toast({ title: "Error", description: "Could not load course data.", variant: "destructive" });
+      } finally {
+        setIsLoading(false);
       }
-    } else {
-      // NOTE: This fallback data is here for display only if localStorage is empty
-      // In a real app, you'd fetch it from Firestore/DB.
-      setCourseData({
-        outline: [{module: "Introduction to Digital Payments (EN)", lessons: ["L1", "L2"], duration: "45 minutes"}],
-        fullContent: "Sample lesson content goes here.",
-        quizzes: [{question: "Sample Q (EN)", options: ["A", "B", "C"], correctIndex: 0, explanation: "Sample E"}],
-        videoScript: "Sample script."
-      } as GeneratedCourseData);
-      setTranslatedContent({fullContent: "Sample lesson content goes here.", videoScript: "Sample script."});
+    };
 
-      // setContentError("No course data found. Please go back and generate a course.");
-    }
-  }, []);
+    loadContent();
+  }, [toast]);
 
-  // --- DYNAMIC TRANSLATION FUNCTION ---
-  const handleTranslateCourse = useCallback(async (targetCode: string) => {
-    if (!courseData) return;
-    
-    setIsTranslating(true);
-    const targetName = languages.find(l => l.value === targetCode)?.label || "English";
-    toast({ title: "Translation Started", description: `Translating content to ${targetName}...` });
-
-    try {
-      // 1. Prepare Content for Translation (Outline titles, Full Content, Quizzes)
-      const contentToTranslate = JSON.stringify({
-        outlineTitles: courseData.outline.map(m => m.module),
-        fullContent: courseData.fullContent,
-        quizQuestions: courseData.quizzes.map(q => ({ question: q.question, options: q.options, explanation: q.explanation })),
-        videoScript: courseData.videoScript
-      });
-
-      const response = await translateCourseContent({
-        content: contentToTranslate,
-        targetLanguage: targetName
-      });
-
-      // The translatedContent property is now correctly typed on response.data
-      const translatedData = JSON.parse(response.data.translatedContent);
-
-      // 2. Update state with translated content
-      const newOutline: CourseOutline[] = courseData.outline.map((module, index) => ({
-        ...module,
-        module: translatedData.outlineTitles[index] || module.module
-      }));
-
-      setCourseData(prev => ({
-          ...prev!,
-          outline: newOutline,
-          quizzes: translatedData.quizQuestions.map((q: any, index: number) => ({
-              // Retain original correct index, but update text
-              correctIndex: prev!.quizzes[index].correctIndex, 
-              question: q.question,
-              options: q.options,
-              explanation: q.explanation,
-          })),
-      }));
-
-      setTranslatedContent({
-        fullContent: translatedData.fullContent,
-        videoScript: translatedData.videoScript
-      });
-      setCurrentLanguageCode(targetCode);
-      toast({ title: "Translation Complete", description: `Successfully translated to ${targetName}.` });
-
-    } catch (error) {
-        console.error("Translation failed:", error);
-        toast({ title: "Translation Error", description: "Failed to translate content. See console for details.", variant: "destructive" });
-    } finally {
-        setIsTranslating(false);
-    }
-  }, [courseData, toast]);
-
+  // --- Handlers (Simplified, assuming data is modified directly in state) ---
 
   const handleEdit = (section: string) => {
     setEditingSection(section);
@@ -207,6 +138,7 @@ const Review = () => {
       title: "Changes Saved",
       description: "Your modifications have been saved successfully.",
     });
+    // In a real app, you would save the modified state back to the server/storage
   };
 
   const handleRegenerate = (section: string) => {
@@ -214,12 +146,13 @@ const Review = () => {
       title: "Regenerating Content",
       description: `AI is regenerating the ${section} section...`,
     });
-    // Simulate regeneration
+    // Simulate regeneration (In a real app, this would be another API call)
     setTimeout(() => {
       toast({
         title: "Content Regenerated",
         description: `The ${section} section has been updated.`,
       });
+      // A real API call would update the state with new content here
     }, 2000);
   };
 
@@ -231,19 +164,24 @@ const Review = () => {
       setIsExporting(false);
       toast({
         title: "Export Complete",
-        description: `Your course has been exported as ${exportFormat.toUpperCase()} in ${currentLanguageName}.`,
+        description: `Your course has been exported as ${exportFormat.toUpperCase()}.`,
       });
     }, 2000);
   };
-  
-  if (contentError) {
-      return <div className="min-h-screen flex items-center justify-center"><Card><CardHeader><CardTitle>Loading Error</CardTitle><CardDescription className="text-red-500">{contentError}</CardDescription></CardHeader><CardContent><Button onClick={() => navigate("/dashboard")}><ArrowLeft className="w-4 h-4 mr-2" />Go to Dashboard</Button></CardContent></Card></div>;
+
+  // --- Loading State Render ---
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/20">
+        <div className="flex flex-col items-center space-y-4">
+          <RotateCcw className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-lg font-medium">Loading generated content...</p>
+        </div>
+      </div>
+    );
   }
 
-  if (!courseData) {
-      return <div className="min-h-screen flex items-center justify-center"><Card><CardTitle>Loading...</CardTitle></Card></div>;
-  }
-
+  // --- Main Component Render ---
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/20">
       {/* Header */}
@@ -263,34 +201,20 @@ const Review = () => {
                     <FormatIcon className="w-3 h-3 mr-1" />
                     {formatLabels[format as keyof typeof formatLabels]}
                   </Badge>
-                  <Badge variant="outline" className="text-sm">
+                  <Badge variant="outline">
                     <Globe className="w-3 h-3 mr-1" />
-                    {currentLanguageName}
+                    {languageLabel(language)}
+                  </Badge>
+                  <Badge variant="outline">
+                    {difficulty.charAt(0).toUpperCase() + difficulty.slice(1)}
                   </Badge>
                 </div>
               </div>
             </div>
-            <div className="flex items-center space-x-4">
-              {/* Language Selector for Translation */}
-              <div className="flex items-center space-x-2">
-                <Label htmlFor="translate-select" className="text-sm font-medium">Translate to:</Label>
-                <Select onValueChange={handleTranslateCourse} value={currentLanguageCode} disabled={isTranslating}>
-                    <SelectTrigger id="translate-select" className="w-[150px]">
-                        <SelectValue placeholder="Select Language" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {languages.map((lang) => (
-                            <SelectItem key={lang.value} value={lang.value} disabled={lang.value === currentLanguageCode}>
-                                {lang.label}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-              </div>
-
-              <Button variant="outline" onClick={() => handleExport(format)} disabled={isExporting || isTranslating}>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" onClick={() => handleExport(format)} disabled={isExporting}>
                 <Download className="w-4 h-4 mr-2" />
-                {isExporting ? "Exporting..." : `Export (${currentLanguageName})`}
+                {isExporting ? "Exporting..." : "Export"}
               </Button>
             </div>
           </div>
@@ -306,6 +230,7 @@ const Review = () => {
             <TabsTrigger value="script">Video Script</TabsTrigger>
           </TabsList>
 
+          {/* --- Tabs Content: Outline --- */}
           <TabsContent value="outline" className="space-y-6">
             <Card className="shadow-lg">
               <CardHeader>
@@ -328,7 +253,7 @@ const Review = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {courseData.outline.map((module, index) => (
+                  {courseOutline.map((module, index) => (
                     <Card key={index} className="border-l-4 border-l-primary">
                       <CardHeader className="pb-3">
                         <div className="flex justify-between items-center">
@@ -362,13 +287,14 @@ const Review = () => {
             </Card>
           </TabsContent>
 
+          {/* --- Tabs Content: Lesson Content (Using Dynamic Data) --- */}
           <TabsContent value="content" className="space-y-6">
             <Card className="shadow-lg">
               <CardHeader>
                 <div className="flex justify-between items-start">
                   <div>
                     <CardTitle>Lesson Content</CardTitle>
-                    <CardDescription>Detailed content for each lesson</CardDescription>
+                    <CardDescription>Detailed content for each lesson in the **{formatLabels[format as keyof typeof formatLabels]}** format.</CardDescription>
                   </div>
                   <div className="flex space-x-2">
                     <Button variant="outline" size="sm" onClick={() => handleRegenerate("content")}>
@@ -383,15 +309,35 @@ const Review = () => {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="prose max-w-none">
-                  <pre className="whitespace-pre-wrap bg-muted/50 p-4 rounded-md text-sm">
-                      {translatedContent.fullContent || "Content not available."}
-                  </pre>
-                </div>
+                 {editingSection === "content" ? (
+                    <Textarea
+                      value={lessonContent}
+                      onChange={(e) => setLessonContent(e.target.value)}
+                      rows={20}
+                      className="font-mono text-sm"
+                    />
+                 ) : (
+                    <div className="prose max-w-none" dangerouslySetInnerHTML={{ __html: lessonContent }} />
+                 )}
+                
+                {/* Edit/Save/Cancel buttons for content */}
+                {editingSection === "content" && (
+                    <div className="flex space-x-2 mt-4 justify-end">
+                        <Button variant="outline" size="sm" onClick={() => setEditingSection(null)}>
+                            <X className="w-4 h-4 mr-1" />
+                            Cancel
+                        </Button>
+                        <Button size="sm" onClick={handleSave}>
+                            <Check className="w-4 h-4 mr-1" />
+                            Save Content
+                        </Button>
+                    </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
 
+          {/* --- Tabs Content: Quizzes (Using Dynamic Data) --- */}
           <TabsContent value="quizzes" className="space-y-6">
             <Card className="shadow-lg">
               <CardHeader>
@@ -414,7 +360,7 @@ const Review = () => {
               </CardHeader>
               <CardContent>
                 <div className="space-y-6">
-                  {courseData.quizzes.map((quiz, index) => (
+                  {quizzes.map((quiz, index) => (
                     <Card key={index} className="border-l-4 border-l-info">
                       <CardHeader className="pb-3">
                         <CardTitle className="text-base">Question {index + 1}</CardTitle>
@@ -427,7 +373,7 @@ const Review = () => {
                               <div 
                                 key={optionIndex} 
                                 className={`p-3 rounded-md border ${
-                                  optionIndex === quiz.correctIndex 
+                                  optionIndex === quiz.correct 
                                     ? 'bg-success/10 border-success text-success-foreground' 
                                     : 'bg-muted/50'
                                 }`}
@@ -435,7 +381,7 @@ const Review = () => {
                                 <div className="flex items-center space-x-2">
                                   <span className="font-medium">{String.fromCharCode(65 + optionIndex)}.</span>
                                   <span>{option}</span>
-                                  {optionIndex === quiz.correctIndex && (
+                                  {optionIndex === quiz.correct && (
                                     <Check className="w-4 h-4 text-success ml-auto" />
                                   )}
                                 </div>
@@ -449,11 +395,26 @@ const Review = () => {
                       </CardContent>
                     </Card>
                   ))}
+                  
+                  {/* Edit/Save/Cancel buttons for quizzes (not fully implemented due to complexity) */}
+                  {editingSection === "quizzes" && (
+                    <div className="flex space-x-2 mt-4 justify-end">
+                        <Button variant="outline" size="sm" onClick={() => setEditingSection(null)}>
+                            <X className="w-4 h-4 mr-1" />
+                            Cancel
+                        </Button>
+                        <Button size="sm" onClick={handleSave}>
+                            <Check className="w-4 h-4 mr-1" />
+                            Save Quizzes
+                        </Button>
+                    </div>
+                )}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
 
+          {/* --- Tabs Content: Video Script (Using Dynamic Data) --- */}
           <TabsContent value="script" className="space-y-6">
             <Card className="shadow-lg">
               <CardHeader>
@@ -466,7 +427,7 @@ const Review = () => {
                     {editingSection === "script" ? (
                       <div className="flex space-x-2">
                         <Button variant="outline" size="sm" onClick={() => setEditingSection(null)}>
-                          {/* Replaced 'X' icon with a component placeholder or import if needed */}
+                          <X className="w-4 h-4 mr-1" />
                           Cancel
                         </Button>
                         <Button size="sm" onClick={handleSave}>
@@ -492,15 +453,15 @@ const Review = () => {
               <CardContent>
                 {editingSection === "script" ? (
                   <Textarea
-                    value={translatedContent.videoScript}
-                    onChange={(e) => setTranslatedContent(prev => ({...prev, videoScript: e.target.value}))}
+                    value={videoScript}
+                    onChange={(e) => setVideoScript(e.target.value)}
                     rows={20}
                     className="font-mono text-sm"
                   />
                 ) : (
                   <div className="prose max-w-none">
                     <pre className="whitespace-pre-wrap bg-muted/50 p-4 rounded-md text-sm">
-                      {translatedContent.videoScript || "Video script not available for this format."}
+                      {videoScript}
                     </pre>
                   </div>
                 )}
