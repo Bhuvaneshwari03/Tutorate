@@ -9,7 +9,7 @@ import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Mail, Lock, User, Briefcase, GraduationCap } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { auth, db,functions} from "../lib/firebase";
+import { app,auth, db, functions} from "../lib/firebase";
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
