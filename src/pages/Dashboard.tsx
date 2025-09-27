@@ -218,10 +218,7 @@ const Dashboard = () => {
             <header className="border-b bg-card/50 backdrop-blur-sm">
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                     <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-gradient-to-r from-primary to-info rounded-lg flex items-center justify-center">
-                            <Sparkles className="w-5 h-5 text-primary-foreground" />
-                        </div>
-                        <h1 className="text-xl font-bold">AI Course Creator</h1>
+                        <h1 className="text-xl font-bold">Tutorate</h1>
                     </div>
                     <Button variant="outline" onClick={handleLogout}>
                         <LogOut className="w-4 h-4 mr-2" />
@@ -238,7 +235,6 @@ const Dashboard = () => {
                         <Card className="shadow-lg">
                             <CardHeader>
                                 <CardTitle className="flex items-center space-x-2">
-                                    <Sparkles className="w-5 h-5 text-info" />
                                     <span>Generate New Course</span>
                                 </CardTitle>
                                 <CardDescription>
@@ -379,7 +375,6 @@ const Dashboard = () => {
                                             disabled={isGenerating}
                                         >
                                             {isGenerating ? "Generating Course..." : "Generate Course"}
-                                            <Sparkles className="w-4 h-4 ml-2" />
                                         </Button>
                                     </form>
                                 </Form>
@@ -433,11 +428,11 @@ const Dashboard = () => {
                             <CardContent className="space-y-3 text-sm">
                                 <div className="flex items-start space-x-2">
                                     <div className="w-2 h-2 rounded-full bg-info mt-2 flex-shrink-0" />
-                                    <p>Be **specific** with your topic for better AI-generated content</p>
+                                    <p>Be specific with your topic for better AI-generated content</p>
                                 </div>
                                 <div className="flex items-start space-x-2">
                                     <div className="w-2 h-2 rounded-full bg-success mt-2 flex-shrink-0" />
-                                    <p>Include **learning objectives** in the description for targeted content</p>
+                                    <p>Include learning objectives in the description for targeted content</p>
                                 </div>
                                 <div className="flex items-start space-x-2">
                                     <div className="w-2 h-2 rounded-full bg-warning mt-2 flex-shrink-0" />
