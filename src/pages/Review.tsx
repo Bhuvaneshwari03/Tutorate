@@ -274,8 +274,11 @@ const Review = () => {
     });
   }, [lessonContent, videoScript]);
 
-  const showNotification = (message, type = "success") => {
-    setNotification({ message, type });
+  const showNotification = (message: string, type: "success" | "error" | "info" = "success") => {
+    // If type is not valid, fallback to 'info'
+    const validTypes = ["success", "error", "info"];
+    const safeType = validTypes.includes(type) ? type : "info";
+    setNotification({ message, type: safeType as "success" | "error" | "info" });
     setTimeout(() => setNotification(null), 3000);
   };
 
