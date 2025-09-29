@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { BookOpen, FileText, Presentation, Video, Download, LogOut, Sparkles, Globe } from "lucide-react";
+import { BookOpen, FileText, Presentation, Video, LogOut, Globe } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -86,7 +86,9 @@ const generateContent = async (values: CourseFormValues): Promise<GeneratedConte
         try {
             const errorData = await response.json();
             errorMessage = errorData.error || errorData.details || errorMessage;
-        } catch {}
+        } catch {
+            // Ignore if response is not JSON
+        }
         throw new Error(`Cloud Function Error: ${errorMessage}`);
     }
 
@@ -169,7 +171,6 @@ const Dashboard = () => {
             await new Promise(resolve => setTimeout(resolve, 500));
 
             // 3. Update recent courses
-            const formatLabel = formats.find(f => f.value === values.format)?.label.replace(' Course', '').replace(' Presentation', '').replace('-lessons', '') || values.format.toUpperCase();
             const languageLabel = languages.find(l => l.value === values.language)?.label || "English";
 
             const newCourse = {
@@ -218,10 +219,7 @@ const Dashboard = () => {
             <header className="border-b bg-card/50 backdrop-blur-sm">
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                     <div className="flex items-center space-x-3">
-                        <div className="w-8 h-8 bg-gradient-to-r from-primary to-info rounded-lg flex items-center justify-center">
-                            <Sparkles className="w-5 h-5 text-primary-foreground" />
-                        </div>
-                        <h1 className="text-xl font-bold">AI Course Creator</h1>
+                        <h1 className="text-xl font-bold">Tutorate</h1>
                     </div>
                     <Button variant="outline" onClick={handleLogout}>
                         <LogOut className="w-4 h-4 mr-2" />
@@ -238,7 +236,6 @@ const Dashboard = () => {
                         <Card className="shadow-lg">
                             <CardHeader>
                                 <CardTitle className="flex items-center space-x-2">
-                                    <Sparkles className="w-5 h-5 text-info" />
                                     <span>Generate New Course</span>
                                 </CardTitle>
                                 <CardDescription>
@@ -379,7 +376,6 @@ const Dashboard = () => {
                                             disabled={isGenerating}
                                         >
                                             {isGenerating ? "Generating Course..." : "Generate Course"}
-                                            <Sparkles className="w-4 h-4 ml-2" />
                                         </Button>
                                     </form>
                                 </Form>
@@ -396,7 +392,7 @@ const Dashboard = () => {
                             </CardHeader>
                             <CardContent className="space-y-4">
                                 {recentCourses.map((course, index) => (
-                                    <div key={course.id} className="space-y-3">
+                                    <div key={course.id}>
                                         <div className="flex justify-between items-start">
                                             <div className="space-y-1">
                                                 <p className="font-medium text-sm leading-tight">{course.topic}</p>
@@ -418,8 +414,7 @@ const Dashboard = () => {
                                                 <FileText className="w-4 h-4" />
                                             </Button>
                                         </div>
-                                        {/* The error was here. It needed to be inside the map's return block. */}
-                                        {index < recentCourses.length - 1 && <Separator />}
+                                        {index < recentCourses.length - 1 && <Separator className="mt-4" />}
                                     </div>
                                 ))}
                             </CardContent>
@@ -432,15 +427,15 @@ const Dashboard = () => {
                             </CardHeader>
                             <CardContent className="space-y-3 text-sm">
                                 <div className="flex items-start space-x-2">
-                                    <div className="w-2 h-2 rounded-full bg-info mt-2 flex-shrink-0" />
-                                    <p>Be **specific** with your topic for better AI-generated content</p>
+                                    <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" />
+                                    <p>Be specific with your topic for better AI-generated content</p>
                                 </div>
                                 <div className="flex items-start space-x-2">
-                                    <div className="w-2 h-2 rounded-full bg-success mt-2 flex-shrink-0" />
-                                    <p>Include **learning objectives** in the description for targeted content</p>
+                                    <div className="w-2 h-2 rounded-full bg-green-500 mt-2 flex-shrink-0" />
+                                    <p>Include learning objectives in the description for targeted content</p>
                                 </div>
                                 <div className="flex items-start space-x-2">
-                                    <div className="w-2 h-2 rounded-full bg-warning mt-2 flex-shrink-0" />
+                                    <div className="w-2 h-2 rounded-full bg-yellow-500 mt-2 flex-shrink-0" />
                                     <p>Review and edit generated content before final export</p>
                                 </div>
                             </CardContent>
