@@ -220,6 +220,7 @@ const Dashboard = () => {
                 <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                     <div className="flex items-center space-x-3">
                         <h1 className="text-xl font-bold">Tutorate</h1>
+                        <h1 className="text-xl font-bold">Tutorate</h1>
                     </div>
                     <Button variant="outline" onClick={handleLogout}>
                         <LogOut className="w-4 h-4 mr-2" />
